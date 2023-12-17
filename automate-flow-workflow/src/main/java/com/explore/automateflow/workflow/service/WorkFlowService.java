@@ -3,6 +3,7 @@ package com.explore.automateflow.workflow.service;
 import java.util.List;
 
 import com.explore.automateflow.workflow.entity.WorkFlow;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,4 +22,6 @@ public interface WorkFlowService {
     Flux<WorkFlow> getAllWorkFlowsByUserId(String userId);
 
     Mono<Void> updateActions(String workflowId, List<String> actionIds);
-}
+    
+    Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse);
+ }

@@ -1,14 +1,12 @@
 package com.explore.automateflow.workflow.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import com.explore.automateflow.workflow.entity.Action;
-import com.explore.automateflow.workflow.entity.Trigger;
-import com.explore.automateflow.workflow.entity.WebhookTrigger;
 import com.explore.automateflow.workflow.entity.WorkFlow;
 import com.explore.automateflow.workflow.repository.WorkFlowRepository;
 import com.explore.automateflow.workflow.service.WorkFlowService;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -17,9 +15,13 @@ import java.util.List;
 
 @Service
 public class WorkFlowServiceImpl implements WorkFlowService {
-    @Autowired
     private final WorkFlowRepository workFlowRepository;
+    private final WebClient webClient;
 
+    public WorkFlowServiceImpl(WorkFlowRepository workFlowRepository, WebClient webClient) {
+        this.workFlowRepository = workFlowRepository;
+        this.webClient = webClient;
+    }
 
     @Override
     public Mono<WorkFlow> createWorkFlow(WorkFlow workFlow) {
@@ -58,5 +60,38 @@ public class WorkFlowServiceImpl implements WorkFlowService {
             workFlow.setActionIds(actionIds);
             return workFlowRepository.save(workFlow).then();
         });
+    }
+
+    // @Override
+    // public Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse) {
+    //     return workFlowRepository.findById(workflowId).flatMapMany(workFlow ->
+    //         Flux.fromIterable(workFlow.getActionIds())
+    //             .concatMap(actionId -> getActionUrl(actionId)
+    //                 .flatMap(url -> webClient.post().uri(url).bodyValue(triggerResponse).retrieve().bodyToMono(String.class))
+    //             )
+    //     ).then();
+    // }
+    @Override
+    public Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse) {
+    return workFlowRepository.findById(workflowId)
+        .flatMap(workFlow -> executeActionsSequentially(workFlow.getActionIds(), triggerResponse))
+        .then();
+    }
+
+    private Mono<JsonNode> executeActionsSequentially(List<String> actionIds, JsonNode previousResponse) {
+        if (actionIds.isEmpty()) {
+            return Mono.just(previousResponse);
+        }
+    
+        String actionId = actionIds.get(0);
+        List<String> remainingActionIds = actionIds.subList(1, actionIds.size());
+    
+        return getActionUrl(actionId)
+            .flatMap(url -> webClient.post().uri(url).bodyValue(previousResponse).retrieve().bodyToMono(JsonNode.class))
+            .flatMap(response -> executeActionsSequentially(remainingActionIds, response));
+    }
+
+    private Mono<String> getActionUrl(String actionId) {
+        return webClient.get().uri("/action/{actionId}", actionId).retrieve().bodyToMono(String.class);
     }
 }
