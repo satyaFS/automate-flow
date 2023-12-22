@@ -3,6 +3,7 @@ package com.explore.automateflow.workflow.service.impl;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.explore.automateflow.workflow.dto.WorkFlowDTO;
 import com.explore.automateflow.workflow.entity.WorkFlow;
 import com.explore.automateflow.workflow.repository.WorkFlowRepository;
 import com.explore.automateflow.workflow.service.WorkFlowService;
@@ -24,18 +25,18 @@ public class WorkFlowServiceImpl implements WorkFlowService {
     }
 
     @Override
-    public Mono<WorkFlow> createWorkFlow(WorkFlow workFlow) {
-        return workFlowRepository.save(workFlow);
+    public Mono<Void> createWorkFlow(WorkFlowDTO workFlow) {
+        return workFlowRepository.save(workFlow.toEntity()).then();
     }
 
     @Override
-    public Mono<WorkFlow> updateWorkFlow(WorkFlow workFlow) {
-        return workFlowRepository.save(workFlow);
+    public Mono<WorkFlowDTO> updateWorkFlow(WorkFlowDTO workFlow) {
+        return workFlowRepository.save(workFlow.toEntity()).flatMap(workFlowEntity -> Mono.just(WorkFlowDTO.fromEntity(workFlowEntity)));
     }
 
     @Override
-    public Mono<WorkFlow> getWorkFlow(String workflowId) {
-        return workFlowRepository.findById(workflowId);
+    public Mono<WorkFlowDTO> getWorkFlow(String workflowId) {
+        return workFlowRepository.findById(workflowId).flatMap(workFlowEntity -> Mono.just(WorkFlowDTO.fromEntity(workFlowEntity)));
     }
 
     @Override
@@ -44,13 +45,13 @@ public class WorkFlowServiceImpl implements WorkFlowService {
     }
 
     @Override
-    public Flux<WorkFlow> getAllWorkFlows() {
-        return workFlowRepository.findAll();
+    public Flux<WorkFlowDTO> getAllWorkFlows() {
+        return workFlowRepository.findAll().flatMap(workFlowEntity -> Mono.just(WorkFlowDTO.fromEntity(workFlowEntity)));
     }
 
     @Override
-    public Flux<WorkFlow> getAllWorkFlowsByUserId(String userId) {
-        return workFlowRepository.findByUserId(userId);
+    public Flux<WorkFlowDTO> getAllWorkFlowsByUserId(String userId) {
+        return workFlowRepository.findByUserId(userId).flatMap(workFlowEntity -> Mono.just(WorkFlowDTO.fromEntity(workFlowEntity)));
     }
 
     @Override

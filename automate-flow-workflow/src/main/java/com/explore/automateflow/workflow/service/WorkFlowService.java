@@ -2,26 +2,27 @@ package com.explore.automateflow.workflow.service;
 
 import java.util.List;
 
-import com.explore.automateflow.workflow.entity.WorkFlow;
+import com.explore.automateflow.workflow.dto.WorkFlowDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface WorkFlowService {
-    Mono<WorkFlow> createWorkFlow(WorkFlow workFlow);
+    Mono<Void> createWorkFlow(WorkFlowDTO workFlow);
 
-    Mono<WorkFlow> updateWorkFlow(WorkFlow workFlow);
+    Mono<WorkFlowDTO> updateWorkFlow(WorkFlowDTO workFlow);
 
-    Mono<WorkFlow> getWorkFlow(String workflowId);
+    Mono<WorkFlowDTO> getWorkFlow(String workflowId);
 
     Mono<Void> deleteWorkFlow(String workflowId);
 
-    Flux<WorkFlow> getAllWorkFlows();
+    Flux<WorkFlowDTO> getAllWorkFlows();
 
-    Flux<WorkFlow> getAllWorkFlowsByUserId(String userId);
+    Flux<WorkFlowDTO> getAllWorkFlowsByUserId(String userId);
 
     Mono<Void> updateActions(String workflowId, List<String> actionIds);
     
     Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse);
- }
+}
+   
