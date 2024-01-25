@@ -12,8 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ActionDTO {
     private String actionId;
-    private String actionName;
-    private String actionDescription;
+    private String name;
+    private String description;
     private String url;
     private String method;
 }

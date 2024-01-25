@@ -1,5 +1,6 @@
 package com.explore.automateflow.workflow.service.impl;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -21,12 +22,22 @@ public class WorkFlowServiceImpl implements WorkFlowService {
 
     public WorkFlowServiceImpl(WorkFlowRepository workFlowRepository, WebClient webClient) {
         this.workFlowRepository = workFlowRepository;
-        this.webClient = webClient;
+        this.webClient = webClient; 
     }
 
     @Override
-    public Mono<Void> createWorkFlow(WorkFlowDTO workFlow) {
-        return workFlowRepository.save(workFlow.toEntity()).then();
+    public Mono<Void> createWorkFlow(WorkFlowDTO workFlowDTO) {
+        Mono<List<String>> actionIds = webClient.post().uri("http://localhost:8084/actions/bulk").bodyValue(workFlowDTO.getActionDTOs())
+        .retrieve().bodyToMono(new ParameterizedTypeReference<List<String>>() {});
+        Mono<String> triggerId = webClient.post().uri("http://localhost:8083/trigger").bodyValue(workFlowDTO.getTriggerDTO())
+        .retrieve().bodyToMono(new ParameterizedTypeReference<String>(){});
+
+        return Mono.zip(actionIds, triggerId).flatMap(data->{
+           WorkFlow workFlow = workFlowDTO.toEntity();
+           workFlow.setActionIds(data.getT1());
+           workFlow.setTriggerId(data.getT2());
+           return workFlowRepository.save(workFlow);
+        }).then();
     }
 
     @Override
