@@ -29,6 +29,7 @@ public class WorkFlowServiceImpl implements WorkFlowService {
         this.webClient = webClient; 
     }
 
+    /* 
     @Override
     public Mono<Void> createWorkFlow(WorkFlowDTO workFlowDTO) {
         Mono<List<String>> actionIds = webClient.post().uri("http://localhost:8084/actions/bulk").bodyValue(workFlowDTO.getActionDTOs())
@@ -42,6 +43,12 @@ public class WorkFlowServiceImpl implements WorkFlowService {
            workFlow.setTriggerId(data.getT2());
            return workFlowRepository.save(workFlow);
         }).then();
+    }
+    */
+
+    @Override
+    public Mono<WorkFlowDTO> createWorkFlow(WorkFlowDTO workFlowDTO) {
+        return workFlowRepository.save(workFlowDTO.toEntity()).map(workFlowEntity -> WorkFlowDTO.fromEntity(workFlowEntity));
     }
 
     @Override
@@ -73,17 +80,16 @@ public class WorkFlowServiceImpl implements WorkFlowService {
     public Mono<Void> updateActions(String workflowId, List<String> actionIds) {
         // Implement the logic to update actions
         return workFlowRepository.findById(workflowId).flatMap(workFlow -> {
-            workFlow.setActionIds(actionIds);
             return workFlowRepository.save(workFlow).then();
         });
     }
 
-    @Override
-    public Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse) {
-    return workFlowRepository.findById(workflowId)
-        .flatMap(workFlow -> executeActionsSequentially(workFlow.getActionIds(), triggerResponse))
-        .then();
-    }
+    // @Override
+    // public Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse) {
+    // return workFlowRepository.findById(workflowId)
+    //     .flatMap(workFlow -> executeActionsSequentially(workFlow.getActionIds(), triggerResponse))
+    //     .then();
+    // }
 
     private Mono<JsonNode> executeActionsSequentially(List<String> actionIds, JsonNode previousResponse) {
         String actionId = actionIds.get(0);

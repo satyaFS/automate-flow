@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/workflow")
 public class WorkFlowController {
     private final WorkFlowService workFlowService;
@@ -19,7 +20,7 @@ public class WorkFlowController {
     }
 
     @PostMapping
-    public Mono<Void> createWorkFlow(@RequestBody WorkFlowDTO workFlow) {
+    public Mono<WorkFlowDTO> createWorkFlow(@RequestBody WorkFlowDTO workFlow) {
         return this.workFlowService.createWorkFlow(workFlow);
     }
 
@@ -53,8 +54,8 @@ public class WorkFlowController {
         return this.workFlowService.updateActions(id, actionIds);
     }
 
-    @PostMapping("/{id}/execute")
-    public Mono<Void> executeWorkFlow(@PathVariable String id, @RequestBody JsonNode triggerResponse) {
-        return this.workFlowService.executeWorkFlow(id, triggerResponse);
-    }
+    // @PostMapping("/{id}/execute")
+    // public Mono<Void> executeWorkFlow(@PathVariable String id, @RequestBody JsonNode triggerResponse) {
+    //     return this.workFlowService.executeWorkFlow(id, triggerResponse);
+    // }
 }

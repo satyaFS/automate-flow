@@ -19,8 +19,6 @@ public class WorkFlowDTO {
     private String workflowName;
     private String workflowDescription;
     private String userId;
-    private TriggerDTO triggerDTO;
-    private List<ActionDTO> actionDTOs;
 
     public static WorkFlowDTO fromEntity(WorkFlow entity) {
         WorkFlowDTO dto = new WorkFlowDTO();
@@ -37,9 +35,6 @@ public class WorkFlowDTO {
         entity.setWorkflowName(this.getWorkflowName());
         entity.setWorkflowDescription(this.getWorkflowDescription());
         entity.setUserId(this.getUserId());
-        entity.setTriggerId(this.getTriggerDTO().getTriggerId());
-        List<String> actionIds =this.getActionDTOs().stream().map(ActionDTO::getActionId).toList();
-        entity.setActionIds(actionIds);
         return entity;
     }
 }

@@ -9,7 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface WorkFlowService {
-    Mono<Void> createWorkFlow(WorkFlowDTO workFlow);
+    Mono<WorkFlowDTO> createWorkFlow(WorkFlowDTO workFlow);
 
     Mono<WorkFlowDTO> updateWorkFlow(WorkFlowDTO workFlow);
 
@@ -23,6 +23,6 @@ public interface WorkFlowService {
 
     Mono<Void> updateActions(String workflowId, List<String> actionIds);
     
-    Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse);
+    // Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse);
 }
    
