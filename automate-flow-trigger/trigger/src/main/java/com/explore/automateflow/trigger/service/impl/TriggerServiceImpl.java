@@ -1,24 +1,30 @@
 package com.explore.automateflow.trigger.service.impl;
 
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.explore.automateflow.trigger.dao.TriggerDAO;
 import com.explore.automateflow.trigger.dto.TriggerDTO;
 import com.explore.automateflow.trigger.service.TriggerService;
+import com.explore.automateflow.trigger.shared.enums.TriggerType;
 
 import reactor.core.publisher.Mono;
 @Service
 public class TriggerServiceImpl implements TriggerService {
     private TriggerDAO triggerDAO;
+    private final WebClient webClient;
 
-    public TriggerServiceImpl(TriggerDAO triggerDAO) {
+    public TriggerServiceImpl(TriggerDAO triggerDAO, WebClient webClient) {
+        this.webClient = webClient;
         this.triggerDAO = triggerDAO;
     }
 
     @Override
-    public Mono<String> saveTrigger(TriggerDTO triggerDTO) {
-        return triggerDAO.saveTrigger(triggerDTO.toEntity())
-            .flatMap(trigger-> Mono.just(trigger.getTriggerId()));
+    public Mono<TriggerDTO> createTrigger(String id) {
+        TriggerDTO triggerDTO = new TriggerDTO(null, id, generateTriggerURL(id),TriggerType.WEBHOOK, null );
+        return this.triggerDAO.saveTrigger(triggerDTO.toEntity())
+        .map(it->TriggerDTO.of(it));
     }
 
     @Override
@@ -34,6 +40,16 @@ public class TriggerServiceImpl implements TriggerService {
     @Override
     public Mono<Void> deleteTrigger(String triggerId) {
         return triggerDAO.deleteTrigger(triggerId);
+    }
+
+    private String generateTriggerURL(String id) {
+        return "http://localhost:8082/workflow/execute/"+id;
+    }
+
+    @Override
+    public Mono<TriggerDTO> getTriggerByWorkflowId(String workflowId) {
+        return triggerDAO.getTriggerByWorkflowId(workflowId)
+        .map(it->TriggerDTO.of(it));
     }
 
 }

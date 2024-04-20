@@ -4,9 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.explore.automateflow.workflow.dto.ActionDTO;
+import com.explore.automateflow.workflow.dto.TriggerDTO;
 import com.explore.automateflow.workflow.dto.WorkFlowDTO;
 import com.explore.automateflow.workflow.entity.WorkFlow;
 import com.explore.automateflow.workflow.repository.WorkFlowRepository;
@@ -22,6 +24,7 @@ import java.util.List;
 public class WorkFlowServiceImpl implements WorkFlowService {
     private final WorkFlowRepository workFlowRepository;
     private final WebClient webClient;
+    // private final TransactionalOperator transactionalOperator;
     
     private static final Logger logger = LoggerFactory.getLogger(WorkFlowServiceImpl.class);
     public WorkFlowServiceImpl(WorkFlowRepository workFlowRepository, WebClient webClient) {
@@ -48,7 +51,12 @@ public class WorkFlowServiceImpl implements WorkFlowService {
 
     @Override
     public Mono<WorkFlowDTO> createWorkFlow(WorkFlowDTO workFlowDTO) {
-        return workFlowRepository.save(workFlowDTO.toEntity()).map(workFlowEntity -> WorkFlowDTO.fromEntity(workFlowEntity));
+        Mono<WorkFlowDTO> persistedWorkflowDTO = workFlowRepository.
+        save(workFlowDTO.toEntity()).map(workFlowEntity -> WorkFlowDTO.fromEntity(workFlowEntity))
+        .cache();
+        var trigger = persistedWorkflowDTO
+        .flatMap(it->webClient.post().uri("http://localhost:8083/triggers").bodyValue(it.getWorkflowId()).retrieve().bodyToMono(TriggerDTO.class));
+        return trigger.then(persistedWorkflowDTO);
     }
 
     @Override
