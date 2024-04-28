@@ -21,6 +21,11 @@ public class TriggerDAO {
         return mongoTemplate.findById(triggerId, Trigger.class);
     }
 
+    public Mono<Trigger> getTriggerByWorkflowId(String workflowId) {
+        var criteria = Criteria.where("workflowId").is(workflowId);
+        return mongoTemplate.findOne(Query.query(criteria), Trigger.class);
+    }
+
     public Mono<Trigger> saveTrigger(Trigger trigger) {
         return mongoTemplate.save(trigger);
     }

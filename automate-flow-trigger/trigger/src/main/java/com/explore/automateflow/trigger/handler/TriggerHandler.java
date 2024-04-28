@@ -17,13 +17,18 @@ public class TriggerHandler {
     }
 
     public Mono<ServerResponse> saveTrigger(ServerRequest request) {
-        return request.bodyToMono(TriggerDTO.class)
-                .flatMap(trigger -> triggerService.saveTrigger(trigger)
+        return request.bodyToMono(String.class)
+                .flatMap(id -> triggerService.createTrigger(id)
                         .flatMap(it -> ServerResponse.ok().bodyValue(it)));
     }
 
     public Mono<ServerResponse> getTrigger(ServerRequest request) {
         return triggerService.getTrigger(request.pathVariable("triggerId"))
+                .flatMap(trigger -> ServerResponse.ok().bodyValue(trigger));
+    }
+
+    public Mono<ServerResponse> getTriggerByWorkflowId(ServerRequest request) {
+        return triggerService.getTriggerByWorkflowId(request.pathVariable("workflowId"))
                 .flatMap(trigger -> ServerResponse.ok().bodyValue(trigger));
     }
 

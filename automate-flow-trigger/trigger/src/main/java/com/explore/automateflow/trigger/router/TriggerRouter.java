@@ -16,10 +16,11 @@ public class TriggerRouter {
     @Bean
     public RouterFunction<ServerResponse> getTriggerPaths() {
         return RouterFunctions.route()
-        .GET("/trigger/{triggerId}", triggerHandler::getTrigger )
-        .POST("/trigger", triggerHandler::saveTrigger)
-        .PUT("/trigger/{triggerId}", triggerHandler::updateTrigger)
-        .DELETE("/trigger/{triggerId}", triggerHandler::deleteTrigger)
+        .GET("/triggers/{triggerId}", triggerHandler::getTrigger )
+        .GET("/triggers/workflow/{workflowId}", triggerHandler::getTriggerByWorkflowId )
+        .POST("/triggers", triggerHandler::saveTrigger)
+        .PUT("/triggers/{triggerId}", triggerHandler::updateTrigger)
+        .DELETE("/triggers/{triggerId}", triggerHandler::deleteTrigger)
         .build();
     }
 }

@@ -18,6 +18,7 @@ import lombok.Setter;
 public class Trigger {
     @Id
     private String triggerId;
+    private String workflowId;
     private String url;
     private TriggerType triggerType;
     private Long pollingInterval;

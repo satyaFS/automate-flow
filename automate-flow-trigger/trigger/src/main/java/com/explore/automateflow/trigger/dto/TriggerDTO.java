@@ -16,16 +16,17 @@ import lombok.Setter;
 @Setter
 public class TriggerDTO {
     private String triggerId;
+    private String workflowId;
     private String url;
     private TriggerType triggerType;
     private Long pollingInterval;
 
     public Trigger toEntity() {
-        return new Trigger(triggerId, url, triggerType, pollingInterval);
+        return new Trigger(triggerId, workflowId, url, triggerType, pollingInterval);
     }
 
     public static TriggerDTO of(Trigger trigger) {
-        return new TriggerDTO(trigger.getTriggerId(), trigger.getUrl(), trigger.getTriggerType(),
+        return new TriggerDTO(trigger.getTriggerId(), trigger.getWorkflowId(), trigger.getUrl(), trigger.getTriggerType(),
                 trigger.getPollingInterval());
     }
 }
