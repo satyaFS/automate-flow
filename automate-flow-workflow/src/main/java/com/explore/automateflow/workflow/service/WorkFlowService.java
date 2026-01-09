@@ -23,6 +23,6 @@ public interface WorkFlowService {
 
     Mono<Void> updateActions(String workflowId, List<String> actionIds);
     
-    // Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse);
+    Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse);
 }
    
