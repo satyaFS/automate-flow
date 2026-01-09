@@ -2,6 +2,7 @@ package com.explore.automateflow.workflow.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -25,6 +26,12 @@ public class WorkFlowServiceImpl implements WorkFlowService {
     private final WorkFlowRepository workFlowRepository;
     private final WebClient webClient;
     // private final TransactionalOperator transactionalOperator;
+
+    @Value("${trigger.service.url}")
+    private String triggerServiceUrl;
+
+    @Value("${action.service.url}")
+    private String actionServiceUrl;
     
     private static final Logger logger = LoggerFactory.getLogger(WorkFlowServiceImpl.class);
     public WorkFlowServiceImpl(WorkFlowRepository workFlowRepository, WebClient webClient) {
@@ -32,31 +39,45 @@ public class WorkFlowServiceImpl implements WorkFlowService {
         this.webClient = webClient; 
     }
 
-    /* 
-    @Override
-    public Mono<Void> createWorkFlow(WorkFlowDTO workFlowDTO) {
-        Mono<List<String>> actionIds = webClient.post().uri("http://localhost:8084/actions/bulk").bodyValue(workFlowDTO.getActionDTOs())
-        .retrieve().bodyToMono(new ParameterizedTypeReference<List<String>>() {});
-        Mono<String> triggerId = webClient.post().uri("http://localhost:8083/trigger").bodyValue(workFlowDTO.getTriggerDTO())
-        .retrieve().bodyToMono(new ParameterizedTypeReference<String>(){});
-
-        return Mono.zip(actionIds, triggerId).flatMap(data->{
-           WorkFlow workFlow = workFlowDTO.toEntity();
-           workFlow.setActionIds(data.getT1());
-           workFlow.setTriggerId(data.getT2());
-           return workFlowRepository.save(workFlow);
-        }).then();
-    }
-    */
-
     @Override
     public Mono<WorkFlowDTO> createWorkFlow(WorkFlowDTO workFlowDTO) {
-        Mono<WorkFlowDTO> persistedWorkflowDTO = workFlowRepository.
-        save(workFlowDTO.toEntity()).map(workFlowEntity -> WorkFlowDTO.fromEntity(workFlowEntity))
-        .cache();
-        var trigger = persistedWorkflowDTO
-        .flatMap(it->webClient.post().uri("http://localhost:8083/triggers").bodyValue(it.getWorkflowId()).retrieve().bodyToMono(TriggerDTO.class));
-        return trigger.then(persistedWorkflowDTO);
+        // 1. Save Workflow first to get an ID
+        return workFlowRepository.save(workFlowDTO.toEntity())
+            .flatMap(savedWorkflow -> {
+                // 2. Create Actions
+                Mono<List<String>> actionIdsMono;
+                if (workFlowDTO.getActions() != null && !workFlowDTO.getActions().isEmpty()) {
+                    actionIdsMono = webClient.post()
+                        .uri(actionServiceUrl + "/actions/bulk")
+                        .bodyValue(workFlowDTO.getActions())
+                        .retrieve()
+                        .bodyToMono(new ParameterizedTypeReference<List<String>>() {});
+                } else {
+                    actionIdsMono = Mono.just(List.of());
+                }
+
+                // 3. Create Trigger
+                Mono<TriggerDTO> triggerMono = webClient.post()
+                    .uri(triggerServiceUrl + "/triggers")
+                    .bodyValue(savedWorkflow.getWorkflowId())
+                    .retrieve()
+                    .bodyToMono(TriggerDTO.class);
+
+                return Mono.zip(actionIdsMono, triggerMono)
+                    .flatMap(tuple -> {
+                        List<String> actionIds = tuple.getT1();
+                        TriggerDTO trigger = tuple.getT2();
+
+                        // Update Workflow with IDs
+                        savedWorkflow.setActionIds(actionIds);
+                        savedWorkflow.setTriggerId(trigger.getTriggerId());
+
+                        // If there is trigger config in input, we might want to update the trigger
+                        // For now, we return the IDs in the DTO
+                        return workFlowRepository.save(savedWorkflow);
+                    });
+            })
+            .map(WorkFlowDTO::fromEntity);
     }
 
     @Override
@@ -86,20 +107,28 @@ public class WorkFlowServiceImpl implements WorkFlowService {
 
     @Override
     public Mono<Void> updateActions(String workflowId, List<String> actionIds) {
-        // Implement the logic to update actions
         return workFlowRepository.findById(workflowId).flatMap(workFlow -> {
+            workFlow.setActionIds(actionIds);
             return workFlowRepository.save(workFlow).then();
         });
     }
 
-    // @Override
-    // public Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse) {
-    // return workFlowRepository.findById(workflowId)
-    //     .flatMap(workFlow -> executeActionsSequentially(workFlow.getActionIds(), triggerResponse))
-    //     .then();
-    // }
+    @Override
+    public Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse) {
+        return workFlowRepository.findById(workflowId)
+            .flatMap(workFlow -> {
+                if (workFlow.getActionIds() == null || workFlow.getActionIds().isEmpty()) {
+                    return Mono.empty();
+                }
+                return executeActionsSequentially(workFlow.getActionIds(), triggerResponse);
+            })
+            .then();
+    }
 
     private Mono<JsonNode> executeActionsSequentially(List<String> actionIds, JsonNode previousResponse) {
+        if (actionIds.isEmpty()) {
+            return Mono.just(previousResponse);
+        }
         String actionId = actionIds.get(0);
         logger.info("prevouResponse {}", previousResponse);
         List<String> remainingActionIds = actionIds.subList(1, actionIds.size());
@@ -107,17 +136,17 @@ public class WorkFlowServiceImpl implements WorkFlowService {
                 .flatMap(action -> executeAction(action, previousResponse))
                 .flatMap(response -> {
                     logger.info("response {}", response);
-                    return remainingActionIds.isEmpty() ? Mono.just(previousResponse)
+                    return remainingActionIds.isEmpty() ? Mono.just(response)
                             : executeActionsSequentially(remainingActionIds, response);
                 });
     }
 
     private Mono<String> getActionUrl(String actionId) {
-        return webClient.get().uri("/action/{actionId}", actionId).retrieve().bodyToMono(String.class);
+        return webClient.get().uri(actionServiceUrl + "/action/{actionId}", actionId).retrieve().bodyToMono(String.class);
     }
 
     private Mono<ActionDTO> getAction(String actionId) {
-        return webClient.get().uri("http://localhost:8084/actions/{actionId}", actionId).retrieve().bodyToMono(ActionDTO.class);
+        return webClient.get().uri(actionServiceUrl + "/action/{actionId}", actionId).retrieve().bodyToMono(ActionDTO.class);
     }
     
     private Mono<JsonNode> executeAction(ActionDTO actionDTO, JsonNode previousResponse) {
