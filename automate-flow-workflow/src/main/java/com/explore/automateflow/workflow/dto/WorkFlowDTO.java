@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,6 +18,8 @@ public class WorkFlowDTO {
     private String workflowName;
     private String workflowDescription;
     private String userId;
+    private List<String> actionIds;
+    private String triggerId;
 
     public static WorkFlowDTO fromEntity(WorkFlow entity) {
         WorkFlowDTO dto = new WorkFlowDTO();
@@ -26,6 +27,8 @@ public class WorkFlowDTO {
         dto.setWorkflowName(entity.getWorkflowName());
         dto.setWorkflowDescription(entity.getWorkflowDescription());
         dto.setUserId(entity.getUserId());
+        dto.setActionIds(entity.getActionIds());
+        dto.setTriggerId(entity.getTriggerId());
         return dto;
     }
 
@@ -35,6 +38,8 @@ public class WorkFlowDTO {
         entity.setWorkflowName(this.getWorkflowName());
         entity.setWorkflowDescription(this.getWorkflowDescription());
         entity.setUserId(this.getUserId());
+        entity.setActionIds(this.getActionIds());
+        entity.setTriggerId(this.getTriggerId());
         return entity;
     }
 }

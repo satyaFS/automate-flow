@@ -5,6 +5,7 @@ import java.util.List;
 import com.explore.automateflow.workflow.dto.WorkFlowDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.explore.automateflow.workflow.entity.WorkFlowExecution;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -22,7 +23,8 @@ public interface WorkFlowService {
     Flux<WorkFlowDTO> getAllWorkFlowsByUserId(String userId);
 
     Mono<Void> updateActions(String workflowId, List<String> actionIds);
-    
-    // Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse);
+
+    Mono<Void> executeWorkFlow(String workflowId, JsonNode triggerResponse);
+
+    Flux<WorkFlowExecution> getExecutions(String workflowId);
 }
-   

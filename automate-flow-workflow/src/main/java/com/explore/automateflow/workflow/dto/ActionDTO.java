@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,4 +15,7 @@ public class ActionDTO {
     private String description;
     private String url;
     private String method;
+    private boolean passPreviousData;
+    private String data;
+    private java.util.Map<String, String> mapping;
 }

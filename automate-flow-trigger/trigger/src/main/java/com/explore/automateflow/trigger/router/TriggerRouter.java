@@ -13,14 +13,16 @@ import com.explore.automateflow.trigger.handler.TriggerHandler;
 public class TriggerRouter {
     @Autowired
     private TriggerHandler triggerHandler;
+
     @Bean
     public RouterFunction<ServerResponse> getTriggerPaths() {
         return RouterFunctions.route()
-        .GET("/triggers/{triggerId}", triggerHandler::getTrigger )
-        .GET("/triggers/workflow/{workflowId}", triggerHandler::getTriggerByWorkflowId )
-        .POST("/triggers", triggerHandler::saveTrigger)
-        .PUT("/triggers/{triggerId}", triggerHandler::updateTrigger)
-        .DELETE("/triggers/{triggerId}", triggerHandler::deleteTrigger)
-        .build();
+                .GET("/triggers/{triggerId}", triggerHandler::getTrigger)
+                .GET("/triggers/workflow/{workflowId}", triggerHandler::getTriggerByWorkflowId)
+                .POST("/triggers", triggerHandler::saveTrigger)
+                .POST("/triggers/{triggerId}/fire", triggerHandler::fireTrigger)
+                .PUT("/triggers/{triggerId}", triggerHandler::updateTrigger)
+                .DELETE("/triggers/{triggerId}", triggerHandler::deleteTrigger)
+                .build();
     }
 }

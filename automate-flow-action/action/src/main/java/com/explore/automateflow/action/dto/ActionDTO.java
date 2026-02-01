@@ -17,8 +17,10 @@ public class ActionDTO {
     private String description;
     private String url;
     private String method;
+    private boolean passPreviousData;
+    private String data;
 
     public Action toEntity() {
-        return new Action(actionId, name, description, url, method);
+        return new Action(actionId, name, description, url, method, passPreviousData, data);
     }
 }

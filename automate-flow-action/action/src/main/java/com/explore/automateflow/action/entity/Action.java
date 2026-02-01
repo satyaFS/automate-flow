@@ -20,4 +20,6 @@ public class Action {
     private String description;
     private String url;
     private String method;
+    private boolean passPreviousData;
+    private String data;
 }

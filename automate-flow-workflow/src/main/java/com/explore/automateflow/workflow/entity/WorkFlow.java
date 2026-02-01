@@ -21,4 +21,6 @@ public class WorkFlow {
     private String workflowName;
     private String workflowDescription;
     private String userId;
+    private List<String> actionIds;
+    private String triggerId;
 }

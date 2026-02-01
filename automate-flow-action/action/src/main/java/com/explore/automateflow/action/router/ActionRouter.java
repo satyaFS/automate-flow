@@ -19,12 +19,12 @@ public class ActionRouter {
     @Bean
     public RouterFunction<ServerResponse> getActionRouter() {
         return RouterFunctions.route()
-        .GET("/action/{id}", this.actionHandler::getActionById)
-        .GET("/actions/sampleAction", this.actionHandler::sampleAction)
-        .POST("/action", this.actionHandler::saveAction)
+        .GET("/actions/{id}", this.actionHandler::getActionById)
+        .GET("/actions/builtin/sampleAction", this.actionHandler::sampleAction)
+        .POST("/actions", this.actionHandler::saveAction)
         .POST("/actions/bulk", this.actionHandler::saveActions)
-        .PUT("/action/{id}", this.actionHandler::updateAction)
-        .DELETE("/action/{id}", this.actionHandler::deleteAction)
+        .PUT("/actions/{id}", this.actionHandler::updateAction)
+        .DELETE("/actions/{id}", this.actionHandler::deleteAction)
         .build();
     }
 }

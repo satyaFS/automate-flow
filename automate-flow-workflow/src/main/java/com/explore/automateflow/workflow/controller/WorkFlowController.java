@@ -53,8 +53,14 @@ public class WorkFlowController {
         return this.workFlowService.updateActions(id, actionIds);
     }
 
-    // @PostMapping("/{id}/execute")
-    // public Mono<Void> executeWorkFlow(@PathVariable String id, @RequestBody JsonNode triggerResponse) {
-    //     return this.workFlowService.executeWorkFlow(id, triggerResponse);
-    // }
+    @PostMapping("/{id}/execute")
+    public Mono<Void> executeWorkFlow(@PathVariable String id,
+            @RequestBody com.fasterxml.jackson.databind.JsonNode triggerResponse) {
+        return this.workFlowService.executeWorkFlow(id, triggerResponse);
+    }
+
+    @GetMapping("/{id}/executions")
+    public Flux<com.explore.automateflow.workflow.entity.WorkFlowExecution> getExecutions(@PathVariable String id) {
+        return this.workFlowService.getExecutions(id);
+    }
 }

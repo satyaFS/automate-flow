@@ -9,4 +9,5 @@ public interface UserService {
     Mono<User> updateUser(User user);
     Mono<Void> deleteUser(String userId);
     Mono<User> createUser(User user);
+    Mono<Boolean> verifyCredentials(User user);
 }
